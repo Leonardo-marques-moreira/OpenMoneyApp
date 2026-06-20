@@ -41,6 +41,7 @@ fun CabecalhoSecaoAutenticada(
     aoClicarAcaoEsquerda: () -> Unit,
     tipoAcaoEsquerda: TipoAcaoCabecalhoEsquerda = TipoAcaoCabecalhoEsquerda.MENU,
     modifier: Modifier = Modifier,
+    acaoEsquerdaHabilitada: Boolean = true,
     subtitulo: String? = null,
     conteudoDireita: @Composable RowScope.() -> Unit = {},
     conteudoInferior: @Composable ColumnScope.() -> Unit = {},
@@ -66,17 +67,28 @@ fun CabecalhoSecaoAutenticada(
             Box(
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                IconButton(
-                    onClick = aoClicarAcaoEsquerda,
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .size(40.dp),
-                ) {
+                if (acaoEsquerdaHabilitada) {
+                    IconButton(
+                        onClick = aoClicarAcaoEsquerda,
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .size(40.dp),
+                    ) {
+                        Icon(
+                            imageVector = iconeAcaoEsquerda,
+                            contentDescription = descricaoAcaoEsquerda,
+                            tint = Color(0xFF2A2A2A),
+                            modifier = Modifier.size(30.dp),
+                        )
+                    }
+                } else {
                     Icon(
                         imageVector = iconeAcaoEsquerda,
-                        contentDescription = descricaoAcaoEsquerda,
+                        contentDescription = null,
                         tint = Color(0xFF2A2A2A),
-                        modifier = Modifier.size(30.dp),
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .size(30.dp),
                     )
                 }
 
@@ -86,31 +98,33 @@ fun CabecalhoSecaoAutenticada(
                     content = conteudoDireita,
                 )
 
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(top = 2.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Text(
-                        text = titulo,
-                        textAlign = TextAlign.Center,
-                        style = TextStyle(
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onPrimary,
-                        ),
-                    )
-
-                    if (!subtitulo.isNullOrBlank()) {
+                if (titulo.isNotBlank() || !subtitulo.isNullOrBlank()) {
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .padding(top = 2.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
                         Text(
-                            text = subtitulo,
+                            text = titulo,
                             textAlign = TextAlign.Center,
                             style = TextStyle(
-                                fontSize = 16.sp,
-                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.92f),
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onPrimary,
                             ),
                         )
+
+                        if (!subtitulo.isNullOrBlank()) {
+                            Text(
+                                text = subtitulo,
+                                textAlign = TextAlign.Center,
+                                style = TextStyle(
+                                    fontSize = 16.sp,
+                                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.92f),
+                                ),
+                            )
+                        }
                     }
                 }
             }

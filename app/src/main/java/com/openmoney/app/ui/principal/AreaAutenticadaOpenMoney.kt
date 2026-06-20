@@ -30,6 +30,9 @@ import com.openmoney.app.ui.meta.TelaCriarMeta
 import com.openmoney.app.ui.meta.TelaMetasEconomia
 import com.openmoney.app.ui.painel.PainelViewModel
 import com.openmoney.app.ui.painel.PainelViewModelFactory
+import com.openmoney.app.ui.perfil.PerfilViewModel
+import com.openmoney.app.ui.perfil.PerfilViewModelFactory
+import com.openmoney.app.ui.perfil.TelaGerenciarPerfil
 import com.openmoney.app.ui.relatorio.RelatorioViewModel
 import com.openmoney.app.ui.relatorio.RelatorioViewModelFactory
 import com.openmoney.app.ui.relatorio.TelaRelatorios
@@ -41,6 +44,7 @@ import com.openmoney.app.ui.transacao.TransacaoViewModelFactory
 fun AreaAutenticadaOpenMoney(
     usuario: Usuario,
     aoClicarSair: () -> Unit,
+    aoAtualizarUsuarioAutenticado: (Usuario) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -123,6 +127,18 @@ fun AreaAutenticadaOpenMoney(
         factory = fabricaRelatorio,
     )
     val estadoRelatorio = relatorioViewModel.estado
+
+    val fabricaPerfil = remember(context, usuario.id) {
+        PerfilViewModelFactory(
+            context = context.applicationContext,
+            usuarioAutenticado = usuario,
+        )
+    }
+    val perfilViewModel: PerfilViewModel = viewModel(
+        key = "perfil-${usuario.id}",
+        factory = fabricaPerfil,
+    )
+    val estadoPerfil = perfilViewModel.estado
 
     LaunchedEffect(estadoConta.contas) {
         painelViewModel.recarregarPainel()
@@ -332,10 +348,33 @@ fun AreaAutenticadaOpenMoney(
             }
 
             DestinoAreaLogada.PERFIL -> {
-                TelaModuloEmConstrucao(
-                    titulo = "Perfil",
-                    descricao = "O modulo de perfil fica para uma etapa posterior, depois do nucleo financeiro.",
-                    aoVoltarInicio = { destinoAreaLogada = DestinoAreaLogada.DASHBOARD },
+                TelaGerenciarPerfil(
+                    nomeCompleto = estadoPerfil.nomeCompleto,
+                    email = estadoPerfil.email,
+                    senhaAtual = estadoPerfil.senhaAtual,
+                    novaSenha = estadoPerfil.novaSenha,
+                    confirmarNovaSenha = estadoPerfil.confirmarNovaSenha,
+                    senhaAtualVisivel = estadoPerfil.senhaAtualVisivel,
+                    novaSenhaVisivel = estadoPerfil.novaSenhaVisivel,
+                    confirmarNovaSenhaVisivel = estadoPerfil.confirmarNovaSenhaVisivel,
+                    erroNomeCompleto = estadoPerfil.erroNomeCompleto,
+                    erroEmail = estadoPerfil.erroEmail,
+                    erroSenhaAtual = estadoPerfil.erroSenhaAtual,
+                    erroNovaSenha = estadoPerfil.erroNovaSenha,
+                    erroConfirmarNovaSenha = estadoPerfil.erroConfirmarNovaSenha,
+                    mensagemErro = estadoPerfil.mensagemErro,
+                    mensagemSucesso = estadoPerfil.mensagemSucesso,
+                    aoAlterarNomeCompleto = perfilViewModel::atualizarNomeCompleto,
+                    aoAlterarEmail = perfilViewModel::atualizarEmail,
+                    aoAlterarSenhaAtual = perfilViewModel::atualizarSenhaAtual,
+                    aoAlterarNovaSenha = perfilViewModel::atualizarNovaSenha,
+                    aoAlterarConfirmarNovaSenha = perfilViewModel::atualizarConfirmarNovaSenha,
+                    aoAlternarVisibilidadeSenhaAtual = perfilViewModel::alternarVisibilidadeSenhaAtual,
+                    aoAlternarVisibilidadeNovaSenha = perfilViewModel::alternarVisibilidadeNovaSenha,
+                    aoAlternarVisibilidadeConfirmarNovaSenha = perfilViewModel::alternarVisibilidadeConfirmarNovaSenha,
+                    aoClicarSalvar = {
+                        perfilViewModel.salvarAlteracoes(aoAtualizarUsuarioAutenticado)
+                    },
                     modifier = modifierConteudo,
                 )
             }

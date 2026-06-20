@@ -14,6 +14,7 @@ import com.openmoney.app.domain.autenticacao.ServicoAutenticacaoLocal
 import com.openmoney.app.domain.autenticacao.ValidadorCamposLogin
 import com.openmoney.app.domain.cadastro.ResultadoCadastroLocal
 import com.openmoney.app.domain.cadastro.ValidadorCadastroUsuario
+import com.openmoney.app.domain.model.Usuario
 import com.openmoney.app.ui.cadastro.EstadoTelaCadastro
 import com.openmoney.app.ui.login.EstadoTelaLogin
 import kotlinx.coroutines.Dispatchers
@@ -229,6 +230,14 @@ class AutenticacaoViewModel(
             usuarioAutenticado = null,
             estadoLogin = EstadoTelaLogin(),
         )
+    }
+
+    fun atualizarUsuarioAutenticado(usuarioAtualizado: Usuario) {
+        if (estado.usuarioAutenticado?.id != usuarioAtualizado.id) {
+            return
+        }
+
+        estado = estado.copy(usuarioAutenticado = usuarioAtualizado)
     }
 }
 

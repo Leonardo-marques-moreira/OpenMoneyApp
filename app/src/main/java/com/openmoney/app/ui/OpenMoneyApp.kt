@@ -68,6 +68,7 @@ fun OpenMoneyApp() {
                 AreaAutenticadaOpenMoney(
                     usuario = usuario,
                     aoClicarSair = autenticacaoViewModel::sair,
+                    aoAtualizarUsuarioAutenticado = autenticacaoViewModel::atualizarUsuarioAutenticado,
                 )
             }
         }

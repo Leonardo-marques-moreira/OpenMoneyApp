@@ -15,6 +15,20 @@ class RepositorioUsuarioLocal(
         return novoUsuario
     }
 
+    override fun atualizar(usuario: Usuario): Usuario {
+        val usuariosAtuais = armazenamento.lerUsuarios()
+        val usuariosAtualizados = usuariosAtuais.map { usuarioExistente ->
+            if (usuarioExistente.id == usuario.id) {
+                usuario
+            } else {
+                usuarioExistente
+            }
+        }
+
+        armazenamento.salvarUsuarios(usuariosAtualizados)
+        return usuario
+    }
+
     override fun buscarPorEmail(email: String): Usuario? {
         val emailNormalizado = email.trim().lowercase()
         return armazenamento.lerUsuarios().firstOrNull { it.email == emailNormalizado }
