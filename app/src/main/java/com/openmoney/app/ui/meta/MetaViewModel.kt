@@ -96,6 +96,10 @@ class MetaViewModel(
         )
     }
 
+    fun limparMensagemSucesso() {
+        estado = estado.copy(mensagemSucesso = null)
+    }
+
     fun cadastrarMeta() {
         val estadoAtual = estado
         val resultadoValidacao = ValidadorCadastroMetaEconomia.validar(
@@ -151,7 +155,7 @@ class MetaViewModel(
                             erroValorAtual = null,
                             erroDataLimite = null,
                             mensagemErro = null,
-                            mensagemSucesso = "Meta cadastrada com sucesso!",
+                            mensagemSucesso = "Cadastro realizado com sucesso",
                         )
                     }
                 }

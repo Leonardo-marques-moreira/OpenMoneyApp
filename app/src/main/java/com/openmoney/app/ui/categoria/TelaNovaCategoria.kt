@@ -1,6 +1,6 @@
 package com.openmoney.app.ui.categoria
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,13 +18,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -39,7 +40,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -169,6 +169,9 @@ fun TelaNovaCategoria(
                             fontSize = 18.sp,
                             color = MaterialTheme.colorScheme.onBackground,
                         ),
+                        leadingIcon = {
+                            IconeCategoriaVisual(icone = iconeAtual)
+                        },
                         trailingIcon = {
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = menuIconesExpandido)
                         },
@@ -181,6 +184,9 @@ fun TelaNovaCategoria(
                         IconesCategoriaDisponiveis.forEach { icone ->
                             DropdownMenuItem(
                                 text = { Text(icone.descricao) },
+                                leadingIcon = {
+                                    IconeCategoriaVisual(icone = icone)
+                                },
                                 onClick = {
                                     aoSelecionarIcone(icone.codigo)
                                     menuIconesExpandido = false
@@ -210,9 +216,13 @@ fun TelaNovaCategoria(
                                 modifier = Modifier.size(40.dp),
                                 shape = CircleShape,
                                 color = cor.toComposeColor(),
-                                border = androidx.compose.foundation.BorderStroke(
+                                border = BorderStroke(
                                     width = 2.dp,
-                                    color = if (corSelecionada == cor) MaterialTheme.colorScheme.onBackground else Color.Transparent,
+                                    color = if (corSelecionada == cor) {
+                                        MaterialTheme.colorScheme.onBackground
+                                    } else {
+                                        Color.Transparent
+                                    },
                                 ),
                             ) {}
                         }
@@ -227,7 +237,7 @@ fun TelaNovaCategoria(
                     color = Color(0xFFD3F1B8),
                 ) {
                     Text(
-                        text = "A categoria ficara disponivel para os proximos lancamentos.",
+                        text = "A categoria será salva e associada a esta transação automaticamente.",
                         modifier = Modifier.padding(18.dp),
                         style = TextStyle(
                             fontSize = 16.sp,
@@ -266,7 +276,7 @@ fun TelaNovaCategoria(
                             .weight(1f)
                             .height(56.dp),
                         shape = RoundedCornerShape(18.dp),
-                        border = androidx.compose.foundation.BorderStroke(
+                        border = BorderStroke(
                             width = 1.dp,
                             color = MaterialTheme.colorScheme.error,
                         ),
@@ -297,6 +307,19 @@ fun TelaNovaCategoria(
 }
 
 @Composable
+private fun IconeCategoriaVisual(
+    icone: IconeCategoriaDisponivel,
+    modifier: Modifier = Modifier,
+) {
+    Icon(
+        imageVector = icone.imagem,
+        contentDescription = icone.descricao,
+        tint = OpenMoneyGreen,
+        modifier = modifier.size(22.dp),
+    )
+}
+
+@Composable
 private fun BotaoTipoCategoria(
     texto: String,
     selecionado: Boolean,
@@ -311,7 +334,7 @@ private fun BotaoTipoCategoria(
         onClick = aoSelecionar,
         modifier = modifier.height(56.dp),
         shape = RoundedCornerShape(16.dp),
-        border = androidx.compose.foundation.BorderStroke(
+        border = BorderStroke(
             width = 1.dp,
             color = corBorda,
         ),

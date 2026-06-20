@@ -69,6 +69,7 @@ fun TelaGerenciarPerfil(
     aoAlternarVisibilidadeSenhaAtual: () -> Unit,
     aoAlternarVisibilidadeNovaSenha: () -> Unit,
     aoAlternarVisibilidadeConfirmarNovaSenha: () -> Unit,
+    aoClicarMenu: () -> Unit,
     aoClicarSalvar: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -86,9 +87,8 @@ fun TelaGerenciarPerfil(
         ) {
             CabecalhoSecaoAutenticada(
                 titulo = "",
-                aoClicarAcaoEsquerda = {},
+                aoClicarAcaoEsquerda = aoClicarMenu,
                 tipoAcaoEsquerda = TipoAcaoCabecalhoEsquerda.MENU,
-                acaoEsquerdaHabilitada = false,
                 conteudoInferior = {
                     Icon(
                         imageVector = Icons.Filled.AccountCircle,
@@ -306,6 +306,7 @@ private fun PreviaTelaGerenciarPerfil() {
             aoAlternarVisibilidadeSenhaAtual = {},
             aoAlternarVisibilidadeNovaSenha = {},
             aoAlternarVisibilidadeConfirmarNovaSenha = {},
+            aoClicarMenu = {},
             aoClicarSalvar = {},
         )
     }

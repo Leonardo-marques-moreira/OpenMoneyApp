@@ -10,6 +10,7 @@ data class EstadoTelaCategoria(
     val nomeCategoria: String = "",
     val iconeSelecionado: String = IconesCategoriaDisponiveis.first().codigo,
     val corSelecionada: String = CoresContaDisponiveis.first(),
+    val categoriaCriadaId: Long? = null,
     val carregando: Boolean = false,
     val erroNomeCategoria: String? = null,
     val erroTipoCategoria: String? = null,

@@ -43,7 +43,7 @@ private val TextoClaroRelatorio = Color(0xFFD9D9D9)
 @Composable
 fun TelaRelatorios(
     estado: EstadoTelaRelatorios,
-    aoVoltarInicio: () -> Unit,
+    aoClicarMenu: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Surface(
@@ -58,8 +58,8 @@ fun TelaRelatorios(
             CabecalhoSecaoAutenticada(
                 titulo = "Relatorios",
                 subtitulo = "Resumo das suas movimentacoes",
-                aoClicarAcaoEsquerda = aoVoltarInicio,
-                tipoAcaoEsquerda = TipoAcaoCabecalhoEsquerda.VOLTAR,
+                aoClicarAcaoEsquerda = aoClicarMenu,
+                tipoAcaoEsquerda = TipoAcaoCabecalhoEsquerda.MENU,
                 conteudoInferior = {
                     Text(
                         text = "Saldo atual: ${formatarMoedaOpenMoney(estado.saldoAtual)}",

@@ -48,7 +48,7 @@ fun TelaMinhasContas(
     contas: List<Conta>,
     carregando: Boolean,
     mensagemSucesso: String?,
-    aoClicarVoltar: () -> Unit,
+    aoClicarMenu: () -> Unit,
     aoClicarNovaConta: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -66,8 +66,8 @@ fun TelaMinhasContas(
         ) {
             CabecalhoSecaoAutenticada(
                 titulo = "Minhas contas",
-                aoClicarAcaoEsquerda = aoClicarVoltar,
-                tipoAcaoEsquerda = TipoAcaoCabecalhoEsquerda.VOLTAR,
+                aoClicarAcaoEsquerda = aoClicarMenu,
+                tipoAcaoEsquerda = TipoAcaoCabecalhoEsquerda.MENU,
                 conteudoDireita = {
                     BotaoAcaoCabecalho(
                         texto = "+ Nova",
@@ -264,7 +264,7 @@ private fun PreviaTelaMinhasContas() {
             ),
             carregando = false,
             mensagemSucesso = null,
-            aoClicarVoltar = {},
+            aoClicarMenu = {},
             aoClicarNovaConta = {},
         )
     }

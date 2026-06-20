@@ -92,6 +92,10 @@ class PerfilViewModel(
         )
     }
 
+    fun limparMensagemSucesso() {
+        estado = estado.copy(mensagemSucesso = null)
+    }
+
     fun salvarAlteracoes(aoPerfilAtualizado: (Usuario) -> Unit) {
         val estadoAtual = estado
         val resultadoValidacao = ValidadorAtualizacaoPerfil.validar(
@@ -151,7 +155,7 @@ class PerfilViewModel(
                             erroNovaSenha = null,
                             erroConfirmarNovaSenha = null,
                             mensagemErro = null,
-                            mensagemSucesso = "Alterações salvas com sucesso!",
+                            mensagemSucesso = "Configurações salvas com sucesso",
                         )
                         aoPerfilAtualizado(resultado.usuario)
                     }

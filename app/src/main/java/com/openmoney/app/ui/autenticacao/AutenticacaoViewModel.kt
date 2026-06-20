@@ -117,6 +117,17 @@ class AutenticacaoViewModel(
         )
     }
 
+    fun confirmarSucessoCadastro() {
+        estado = estado.copy(
+            destinoAtual = DestinoAutenticacao.LOGIN,
+            estadoLogin = estado.estadoLogin.copy(
+                senha = "",
+                mensagemAutenticacao = null,
+                mensagemSucesso = null,
+            ),
+        )
+    }
+
     fun atualizarNomeCadastro(novoNome: String) {
         estado = estado.copy(
             estadoCadastro = estado.estadoCadastro.copy(
@@ -215,7 +226,7 @@ class AutenticacaoViewModel(
                             estadoCadastro = EstadoTelaCadastro(),
                             estadoLogin = EstadoTelaLogin(
                                 email = resultado.usuario.email,
-                                mensagemSucesso = "Registro gravado com sucesso!",
+                                mensagemSucesso = "Cadastro realizado com sucesso",
                             ),
                         )
                     }

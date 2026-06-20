@@ -91,6 +91,10 @@ class ContaViewModel(
         )
     }
 
+    fun limparMensagemSucesso() {
+        estado = estado.copy(mensagemSucesso = null)
+    }
+
     fun cadastrarConta() {
         val estadoAtual = estado
         val resultadoValidacao = ValidadorCadastroConta.validar(
@@ -145,7 +149,7 @@ class ContaViewModel(
                             erroTipoConta = null,
                             erroSaldoInicial = null,
                             mensagemErro = null,
-                            mensagemSucesso = "Conta cadastrada com sucesso!",
+                            mensagemSucesso = "Conta cadastrada com sucesso",
                         )
                     }
                 }

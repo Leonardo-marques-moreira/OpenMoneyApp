@@ -81,6 +81,7 @@ fun TelaNovaTransacao(
     aoSelecionarCategoria: (Long) -> Unit,
     aoSelecionarConta: (Long) -> Unit,
     aoAbrirNovaCategoria: () -> Unit,
+    aoAbrirTransacoesCadastradas: () -> Unit,
     aoClicarVoltar: () -> Unit,
     aoClicarSalvar: () -> Unit,
     modifier: Modifier = Modifier,
@@ -122,6 +123,18 @@ fun TelaNovaTransacao(
                         .fillMaxWidth()
                         .padding(horizontal = 28.dp, vertical = 28.dp),
                 ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                    ) {
+                        BotaoAcaoSecundaria(
+                            texto = "Ver transacoes",
+                            aoClicar = aoAbrirTransacoesCadastradas,
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -249,16 +262,10 @@ fun TelaNovaTransacao(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    OutlinedButton(
-                        onClick = aoAbrirNovaCategoria,
-                        shape = RoundedCornerShape(18.dp),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = OpenMoneyGreen,
-                        ),
-                    ) {
-                        Text(text = "+ Nova categoria", style = TextStyle(fontSize = 16.sp))
-                    }
+                    BotaoAcaoSecundaria(
+                        texto = "+ Nova categoria",
+                        aoClicar = aoAbrirNovaCategoria,
+                    )
 
                     Spacer(modifier = Modifier.height(24.dp))
 
@@ -403,6 +410,25 @@ fun TelaNovaTransacao(
 }
 
 @Composable
+private fun BotaoAcaoSecundaria(
+    texto: String,
+    aoClicar: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    OutlinedButton(
+        onClick = aoClicar,
+        modifier = modifier,
+        shape = RoundedCornerShape(18.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        colors = ButtonDefaults.outlinedButtonColors(
+            contentColor = OpenMoneyGreen,
+        ),
+    ) {
+        Text(text = texto, style = TextStyle(fontSize = 16.sp))
+    }
+}
+
+@Composable
 private fun BotaoTipoTransacao(
     texto: String,
     selecionado: Boolean,
@@ -476,6 +502,7 @@ private fun PreviaTelaNovaTransacao() {
             aoSelecionarCategoria = {},
             aoSelecionarConta = {},
             aoAbrirNovaCategoria = {},
+            aoAbrirTransacoesCadastradas = {},
             aoClicarVoltar = {},
             aoClicarSalvar = {},
         )

@@ -10,7 +10,7 @@ import com.openmoney.app.ui.conta.TelaMinhasContas
 fun TelaPainelInicial(
     usuario: Usuario,
     estadoConta: EstadoTelaConta,
-    aoClicarVoltar: () -> Unit,
+    aoClicarMenu: () -> Unit,
     aoClicarNovaConta: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -19,7 +19,7 @@ fun TelaPainelInicial(
         contas = estadoConta.contas,
         carregando = estadoConta.carregando,
         mensagemSucesso = estadoConta.mensagemSucesso,
-        aoClicarVoltar = aoClicarVoltar,
+        aoClicarMenu = aoClicarMenu,
         aoClicarNovaConta = aoClicarNovaConta,
         modifier = modifier,
     )

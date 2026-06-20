@@ -10,6 +10,7 @@ import com.openmoney.app.ui.autenticacao.DestinoAutenticacao
 import com.openmoney.app.ui.cadastro.TelaCadastro
 import com.openmoney.app.ui.login.TelaLogin
 import com.openmoney.app.ui.principal.AreaAutenticadaOpenMoney
+import com.openmoney.app.ui.principal.TelaMensagemSucesso
 
 @Composable
 fun OpenMoneyApp() {
@@ -22,21 +23,31 @@ fun OpenMoneyApp() {
 
     when (estado.destinoAtual) {
         DestinoAutenticacao.LOGIN -> {
-            TelaLogin(
-                email = estado.estadoLogin.email,
-                senha = estado.estadoLogin.senha,
-                senhaVisivel = estado.estadoLogin.senhaVisivel,
-                erroEmail = estado.estadoLogin.erroEmail,
-                erroSenha = estado.estadoLogin.erroSenha,
-                mensagemAutenticacao = estado.estadoLogin.mensagemAutenticacao,
-                mensagemSucesso = estado.estadoLogin.mensagemSucesso,
-                aoAlterarEmail = autenticacaoViewModel::atualizarEmailLogin,
-                aoAlterarSenha = autenticacaoViewModel::atualizarSenhaLogin,
-                aoAlternarVisibilidadeSenha = autenticacaoViewModel::alternarVisibilidadeSenhaLogin,
-                aoClicarEntrar = autenticacaoViewModel::entrar,
-                aoClicarEsqueciSenha = {},
-                aoClicarCadastrar = autenticacaoViewModel::irParaCadastro,
-            )
+            val mensagemSucesso = estado.estadoLogin.mensagemSucesso
+
+            if (!mensagemSucesso.isNullOrBlank()) {
+                TelaMensagemSucesso(
+                    mensagem = mensagemSucesso,
+                    textoBotao = "Fazer login",
+                    aoClicarBotao = autenticacaoViewModel::confirmarSucessoCadastro,
+                )
+            } else {
+                TelaLogin(
+                    email = estado.estadoLogin.email,
+                    senha = estado.estadoLogin.senha,
+                    senhaVisivel = estado.estadoLogin.senhaVisivel,
+                    erroEmail = estado.estadoLogin.erroEmail,
+                    erroSenha = estado.estadoLogin.erroSenha,
+                    mensagemAutenticacao = estado.estadoLogin.mensagemAutenticacao,
+                    mensagemSucesso = estado.estadoLogin.mensagemSucesso,
+                    aoAlterarEmail = autenticacaoViewModel::atualizarEmailLogin,
+                    aoAlterarSenha = autenticacaoViewModel::atualizarSenhaLogin,
+                    aoAlternarVisibilidadeSenha = autenticacaoViewModel::alternarVisibilidadeSenhaLogin,
+                    aoClicarEntrar = autenticacaoViewModel::entrar,
+                    aoClicarEsqueciSenha = {},
+                    aoClicarCadastrar = autenticacaoViewModel::irParaCadastro,
+                )
+            }
         }
 
         DestinoAutenticacao.CADASTRO -> {

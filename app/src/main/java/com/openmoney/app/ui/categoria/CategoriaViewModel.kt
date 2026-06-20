@@ -37,6 +37,7 @@ class CategoriaViewModel(
             nomeCategoria = "",
             iconeSelecionado = IconesCategoriaDisponiveis.first().codigo,
             corSelecionada = CoresContaDisponiveis.first(),
+            categoriaCriadaId = null,
             erroNomeCategoria = null,
             erroTipoCategoria = null,
             mensagemErro = null,
@@ -112,10 +113,11 @@ class CategoriaViewModel(
                         estado = estado.copy(
                             categorias = categoriasAtualizadas,
                             nomeCategoria = "",
+                            categoriaCriadaId = resultado.categoria.id,
                             erroNomeCategoria = null,
                             erroTipoCategoria = null,
                             mensagemErro = null,
-                            mensagemSucesso = "Categoria cadastrada com sucesso!",
+                            mensagemSucesso = "Categoria cadastrada com sucesso",
                         )
                     }
                 }

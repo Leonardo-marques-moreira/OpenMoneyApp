@@ -18,6 +18,7 @@ import com.openmoney.app.domain.conta.ServicoContaLocal
 import com.openmoney.app.domain.model.Categoria
 import com.openmoney.app.domain.model.Conta
 import com.openmoney.app.domain.model.TipoTransacao
+import com.openmoney.app.domain.model.Transacao
 import com.openmoney.app.domain.model.Usuario
 import com.openmoney.app.domain.transacao.ResultadoCadastroTransacaoLocal
 import com.openmoney.app.domain.transacao.ServicoTransacaoLocal
@@ -110,11 +111,11 @@ class TransacaoViewModel(
         )
     }
 
-    fun recarregarCategorias() {
+    fun recarregarCategorias(categoriaPreferida: Long? = estado.categoriaSelecionadaId) {
         carregarDados(
             tipoPreferido = estado.tipoSelecionado,
             contaPreferida = estado.contaSelecionadaId,
-            categoriaPreferida = estado.categoriaSelecionadaId,
+            categoriaPreferida = categoriaPreferida,
         )
     }
 
@@ -123,6 +124,53 @@ class TransacaoViewModel(
             mensagemSucesso = mensagem,
             mensagemErro = null,
         )
+    }
+
+    fun limparMensagemSucesso() {
+        estado = estado.copy(mensagemSucesso = null)
+    }
+
+    fun limparMensagemErro() {
+        estado = estado.copy(mensagemErro = null)
+    }
+
+    fun carregarTransacoesCadastradas() {
+        estado = estado.copy(
+            carregandoTransacoesCadastradas = true,
+            mensagemErro = null,
+        )
+
+        viewModelScope.launch(Dispatchers.IO) {
+            val resultado = runCatching {
+                val contas = servicoConta.listarPorUsuario(usuarioAutenticado.id)
+                val categorias = servicoCategoria.listarPorUsuario(usuarioAutenticado.id)
+                val transacoes = servicoTransacao.listarPorUsuario(usuarioAutenticado.id)
+
+                val contasPorId = contas.associateBy { conta -> conta.id }
+                val categoriasPorId = categorias.associateBy { categoria -> categoria.id }
+
+                transacoes.mapNotNull { transacao ->
+                    transacao.paraItemTransacaoCadastrada(
+                        contasPorId = contasPorId,
+                        categoriasPorId = categoriasPorId,
+                    )
+                }
+            }
+
+            withContext(Dispatchers.Main) {
+                resultado.onSuccess { transacoes ->
+                    estado = estado.copy(
+                        transacoesCadastradas = transacoes,
+                        carregandoTransacoesCadastradas = false,
+                    )
+                }.onFailure {
+                    estado = estado.copy(
+                        carregandoTransacoesCadastradas = false,
+                        mensagemErro = "Nao foi possivel carregar as transacoes cadastradas.",
+                    )
+                }
+            }
+        }
     }
 
     fun cadastrarTransacao() {
@@ -200,7 +248,11 @@ class TransacaoViewModel(
                             erroConta = null,
                             erroData = null,
                             mensagemErro = null,
-                            mensagemSucesso = "Transacao registrada com sucesso!",
+                            mensagemSucesso = if (estadoAtual.tipoSelecionado == TipoTransacao.DESPESA) {
+                                "Despesa cadastrada com sucesso"
+                            } else {
+                                "Cadastro realizado com sucesso"
+                            },
                             versaoSaldoContas = estado.versaoSaldoContas + 1L,
                         )
                     }
@@ -253,6 +305,26 @@ class TransacaoViewModel(
     ): Long? {
         return categoriaPreferida?.takeIf { id -> categorias.any { it.id == id } }
             ?: categorias.firstOrNull()?.id
+    }
+
+    private fun Transacao.paraItemTransacaoCadastrada(
+        contasPorId: Map<Long, Conta>,
+        categoriasPorId: Map<Long, Categoria>,
+    ): ItemTransacaoCadastrada? {
+        val conta = contasPorId[contaId] ?: return null
+        val categoria = categoriasPorId[categoriaId] ?: return null
+
+        return ItemTransacaoCadastrada(
+            id = id,
+            descricao = descricao,
+            valor = valor,
+            tipo = tipo,
+            data = data,
+            nomeConta = conta.nome,
+            nomeCategoria = categoria.nome,
+            codigoIconeCategoria = categoria.icone,
+            corCategoria = categoria.cor,
+        )
     }
 }
 

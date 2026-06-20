@@ -31,7 +31,7 @@ fun TelaMetasEconomia(
     metas: List<MetaEconomia>,
     carregando: Boolean,
     mensagemSucesso: String?,
-    aoClicarVoltar: () -> Unit,
+    aoClicarMenu: () -> Unit,
     aoClicarNovaMeta: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -48,8 +48,8 @@ fun TelaMetasEconomia(
         ) {
             CabecalhoSecaoAutenticada(
                 titulo = "Metas de economia",
-                aoClicarAcaoEsquerda = aoClicarVoltar,
-                tipoAcaoEsquerda = TipoAcaoCabecalhoEsquerda.VOLTAR,
+                aoClicarAcaoEsquerda = aoClicarMenu,
+                tipoAcaoEsquerda = TipoAcaoCabecalhoEsquerda.MENU,
                 conteudoDireita = {
                     BotaoAcaoCabecalho(
                         texto = "+ Nova",
