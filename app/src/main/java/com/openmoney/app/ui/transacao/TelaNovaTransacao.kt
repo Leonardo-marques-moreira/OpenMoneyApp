@@ -49,6 +49,7 @@ import com.openmoney.app.domain.model.TipoConta
 import com.openmoney.app.domain.model.TipoTransacao
 import com.openmoney.app.ui.autenticacao.CampoAutenticacao
 import com.openmoney.app.ui.autenticacao.RotuloCampoAutenticacao
+import com.openmoney.app.ui.comum.CampoDataComCalendario
 import com.openmoney.app.ui.principal.CabecalhoSecaoAutenticada
 import com.openmoney.app.ui.principal.TipoAcaoCabecalhoEsquerda
 import com.openmoney.app.ui.theme.OpenMoneyGreen
@@ -271,15 +272,12 @@ fun TelaNovaTransacao(
 
                     RotuloCampoAutenticacao(texto = "Data")
                     Spacer(modifier = Modifier.height(10.dp))
-                    CampoAutenticacao(
+                    CampoDataComCalendario(
                         valor = dataLancamento,
                         aoAlterarValor = aoAlterarData,
-                        opcoesTeclado = KeyboardOptions(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Next,
-                        ),
                         mensagemErro = erroData,
                         placeholder = "DD/MM/AAAA",
+                        imeAction = ImeAction.Next,
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))

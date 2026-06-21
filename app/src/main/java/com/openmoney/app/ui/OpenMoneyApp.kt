@@ -1,8 +1,13 @@
 package com.openmoney.app.ui
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.openmoney.app.ui.autenticacao.AutenticacaoViewModel
 import com.openmoney.app.ui.autenticacao.AutenticacaoViewModelFactory
@@ -25,13 +30,7 @@ fun OpenMoneyApp() {
         DestinoAutenticacao.LOGIN -> {
             val mensagemSucesso = estado.estadoLogin.mensagemSucesso
 
-            if (!mensagemSucesso.isNullOrBlank()) {
-                TelaMensagemSucesso(
-                    mensagem = mensagemSucesso,
-                    textoBotao = "Fazer login",
-                    aoClicarBotao = autenticacaoViewModel::confirmarSucessoCadastro,
-                )
-            } else {
+            Box(modifier = Modifier.fillMaxSize()) {
                 TelaLogin(
                     email = estado.estadoLogin.email,
                     senha = estado.estadoLogin.senha,
@@ -46,7 +45,23 @@ fun OpenMoneyApp() {
                     aoClicarEntrar = autenticacaoViewModel::entrar,
                     aoClicarEsqueciSenha = {},
                     aoClicarCadastrar = autenticacaoViewModel::irParaCadastro,
+                    modifier = Modifier.then(
+                        if (!mensagemSucesso.isNullOrBlank()) {
+                            Modifier.blur(16.dp)
+                        } else {
+                            Modifier
+                        },
+                    ),
                 )
+
+                if (!mensagemSucesso.isNullOrBlank()) {
+                    TelaMensagemSucesso(
+                        mensagem = mensagemSucesso,
+                        textoBotao = "Fazer login",
+                        aoClicarBotao = autenticacaoViewModel::confirmarSucessoCadastro,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
             }
         }
 

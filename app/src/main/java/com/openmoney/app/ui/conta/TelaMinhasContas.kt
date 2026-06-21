@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.openmoney.app.domain.conta.CalculadoraSaldoConta
 import com.openmoney.app.domain.model.Conta
 import com.openmoney.app.domain.model.TipoConta
 import com.openmoney.app.domain.model.Usuario
@@ -52,7 +53,7 @@ fun TelaMinhasContas(
     aoClicarNovaConta: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val saldoTotal = contas.fold(BigDecimal.ZERO) { acumulado, conta -> acumulado + conta.saldo }
+    val saldoTotal = CalculadoraSaldoConta.calcularSaldoTotal(contas)
     val scrollState = rememberScrollState()
 
     Surface(
@@ -155,6 +156,8 @@ fun TelaMinhasContas(
 
 @Composable
 private fun CartaoContaResumo(conta: Conta) {
+    val saldoExibido = CalculadoraSaldoConta.calcularSaldoExibido(conta)
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(22.dp),
@@ -219,12 +222,12 @@ private fun CartaoContaResumo(conta: Conta) {
                 Spacer(modifier = Modifier.width(12.dp))
 
                 Text(
-                    text = formatarMoedaOpenMoney(conta.saldo),
+                    text = formatarMoedaOpenMoney(saldoExibido),
                     textAlign = TextAlign.End,
                     style = TextStyle(
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Medium,
-                        color = formatarCorSaldoOpenMoney(conta.saldo),
+                        color = formatarCorSaldoOpenMoney(saldoExibido),
                     ),
                 )
             }

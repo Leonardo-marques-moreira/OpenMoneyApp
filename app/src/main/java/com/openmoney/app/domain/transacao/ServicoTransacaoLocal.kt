@@ -1,5 +1,6 @@
 package com.openmoney.app.domain.transacao
 
+import com.openmoney.app.domain.conta.CalculadoraSaldoConta
 import com.openmoney.app.domain.model.TipoTransacao
 import com.openmoney.app.domain.model.Transacao
 import com.openmoney.app.domain.repositorio.RepositorioCategoria
@@ -93,10 +94,11 @@ class ServicoTransacaoLocal(
             )
         }
 
-        val saldoAtualizado = when (tipoTransacao) {
-            TipoTransacao.RECEITA -> conta.saldo + valor
-            TipoTransacao.DESPESA -> conta.saldo - valor
-        }
+        val saldoAtualizado = CalculadoraSaldoConta.atualizarSaldoAposTransacao(
+            conta = conta,
+            tipoTransacao = tipoTransacao,
+            valor = valor,
+        )
 
         val contaAtualizada = conta.copy(saldo = saldoAtualizado)
 

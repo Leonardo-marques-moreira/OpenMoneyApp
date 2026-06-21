@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import com.openmoney.app.domain.comum.ConversorEntradaFinanceira
 import com.openmoney.app.ui.autenticacao.CampoAutenticacao
 import com.openmoney.app.ui.autenticacao.RotuloCampoAutenticacao
+import com.openmoney.app.ui.comum.CampoDataComCalendario
 import com.openmoney.app.ui.principal.CabecalhoSecaoAutenticada
 import com.openmoney.app.ui.principal.TipoAcaoCabecalhoEsquerda
 import com.openmoney.app.ui.theme.OpenMoneyGreen
@@ -134,16 +135,14 @@ fun TelaCriarMeta(
 
                 RotuloCampoAutenticacao(texto = "Data limite")
                 Spacer(modifier = Modifier.height(10.dp))
-                CampoAutenticacao(
+                CampoDataComCalendario(
                     valor = dataLimite,
                     aoAlterarValor = aoAlterarDataLimite,
-                    opcoesTeclado = KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Done,
-                    ),
                     acoesTeclado = KeyboardActions(onDone = { aoClicarSalvar() }),
                     mensagemErro = erroDataLimite,
                     placeholder = "DD/MM/AAAA",
+                    imeAction = ImeAction.Done,
+                    bloquearDatasAnteriores = true,
                 )
 
                 Spacer(modifier = Modifier.height(34.dp))

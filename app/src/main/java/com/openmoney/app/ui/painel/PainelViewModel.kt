@@ -14,6 +14,7 @@ import com.openmoney.app.data.repositorio.RepositorioCategoriaLocal
 import com.openmoney.app.data.repositorio.RepositorioContaLocal
 import com.openmoney.app.data.repositorio.RepositorioTransacaoLocal
 import com.openmoney.app.domain.categoria.ServicoCategoriaLocal
+import com.openmoney.app.domain.conta.CalculadoraSaldoConta
 import com.openmoney.app.domain.conta.ServicoContaLocal
 import com.openmoney.app.domain.model.Categoria
 import com.openmoney.app.domain.model.TipoTransacao
@@ -48,7 +49,7 @@ class PainelViewModel(
                 .associateBy(Categoria::id)
             val transacoes = servicoTransacao.listarPorUsuario(usuarioAutenticado.id)
 
-            val saldoTotal = contas.fold(BigDecimal.ZERO) { acumulado, conta -> acumulado + conta.saldo }
+            val saldoTotal = CalculadoraSaldoConta.calcularSaldoTotal(contas)
             val totalReceitas = transacoes
                 .filter { it.tipo == TipoTransacao.RECEITA }
                 .fold(BigDecimal.ZERO) { acumulado, transacao -> acumulado + transacao.valor }

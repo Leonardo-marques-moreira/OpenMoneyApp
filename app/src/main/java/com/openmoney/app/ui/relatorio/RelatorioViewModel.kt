@@ -14,6 +14,7 @@ import com.openmoney.app.data.repositorio.RepositorioCategoriaLocal
 import com.openmoney.app.data.repositorio.RepositorioContaLocal
 import com.openmoney.app.data.repositorio.RepositorioTransacaoLocal
 import com.openmoney.app.domain.categoria.ServicoCategoriaLocal
+import com.openmoney.app.domain.conta.CalculadoraSaldoConta
 import com.openmoney.app.domain.conta.ServicoContaLocal
 import com.openmoney.app.domain.model.Categoria
 import com.openmoney.app.domain.model.TipoTransacao
@@ -24,6 +25,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
+import java.time.YearMonth
+import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.util.Locale
 
 class RelatorioViewModel(
     private val servicoConta: ServicoContaLocal,
@@ -31,6 +36,9 @@ class RelatorioViewModel(
     private val servicoTransacao: ServicoTransacaoLocal,
     private val usuarioAutenticado: Usuario,
 ) : ViewModel() {
+
+    private val localeBrasil = Locale.forLanguageTag("pt-BR")
+    private var mesReferenciaSelecionado: YearMonth? = null
 
     var estado by mutableStateOf(EstadoTelaRelatorios(carregando = true))
         private set
@@ -47,34 +55,64 @@ class RelatorioViewModel(
             val categoriasPorId = servicoCategoria.listarPorUsuario(usuarioAutenticado.id)
                 .associateBy(Categoria::id)
             val transacoes = servicoTransacao.listarPorUsuario(usuarioAutenticado.id)
+            val periodosDisponiveis = montarPeriodosDisponiveis(transacoes)
+            val mesReferencia = resolverMesReferencia(
+                transacoes = transacoes,
+                periodosDisponiveis = periodosDisponiveis,
+            )
+            val transacoesMesReferencia = filtrarTransacoesPorMes(
+                transacoes = transacoes,
+                mesReferencia = mesReferencia,
+            )
 
-            val saldoAtual = contas.fold(BigDecimal.ZERO) { acumulado, conta -> acumulado + conta.saldo }
-            val totalReceitas = somarPorTipo(transacoes, TipoTransacao.RECEITA)
-            val totalDespesas = somarPorTipo(transacoes, TipoTransacao.DESPESA)
+            val saldoAtual = CalculadoraSaldoConta.calcularSaldoTotal(contas)
+            val totalReceitas = somarPorTipo(transacoesMesReferencia, TipoTransacao.RECEITA)
+            val totalDespesas = somarPorTipo(transacoesMesReferencia, TipoTransacao.DESPESA)
 
             val receitasPorCategoria = agruparPorCategoria(
-                transacoes = transacoes,
+                transacoes = transacoesMesReferencia,
                 categoriasPorId = categoriasPorId,
                 tipoTransacao = TipoTransacao.RECEITA,
             )
             val despesasPorCategoria = agruparPorCategoria(
-                transacoes = transacoes,
+                transacoes = transacoesMesReferencia,
                 categoriasPorId = categoriasPorId,
                 tipoTransacao = TipoTransacao.DESPESA,
+            )
+            val comparativoMensal = montarComparativoMensal(
+                transacoes = transacoes,
+                mesReferencia = mesReferencia,
             )
 
             withContext(Dispatchers.Main) {
                 estado = EstadoTelaRelatorios(
+                    identificadorPeriodoSelecionado = mesReferencia.toString(),
+                    periodoReferencia = formatarPeriodoReferencia(mesReferencia),
+                    periodosDisponiveis = periodosDisponiveis,
                     saldoAtual = saldoAtual,
                     saldoMovimentado = totalReceitas - totalDespesas,
                     totalReceitas = totalReceitas,
                     totalDespesas = totalDespesas,
                     receitasPorCategoria = receitasPorCategoria,
                     despesasPorCategoria = despesasPorCategoria,
+                    comparativoMensal = comparativoMensal,
                     carregando = false,
                 )
             }
         }
+    }
+
+    fun selecionarPeriodo(identificadorPeriodo: String) {
+        val novoMesReferencia = runCatching {
+            YearMonth.parse(identificadorPeriodo)
+        }.getOrNull() ?: return
+
+        if (mesReferenciaSelecionado == novoMesReferencia) {
+            return
+        }
+
+        mesReferenciaSelecionado = novoMesReferencia
+        recarregarRelatorios()
     }
 
     private fun somarPorTipo(
@@ -105,6 +143,104 @@ class RelatorioViewModel(
                 )
             }
             .sortedByDescending { it.total }
+    }
+
+    private fun resolverMesReferencia(
+        transacoes: List<Transacao>,
+        periodosDisponiveis: List<ItemPeriodoRelatorio>,
+    ): YearMonth {
+        val identificadoresDisponiveis = periodosDisponiveis
+            .map(ItemPeriodoRelatorio::identificador)
+            .toSet()
+
+        val mesSelecionado = mesReferenciaSelecionado
+        if (mesSelecionado != null && identificadoresDisponiveis.contains(mesSelecionado.toString())) {
+            return mesSelecionado
+        }
+
+        val dataMaisRecente = transacoes.maxOfOrNull(Transacao::data)
+        return if (dataMaisRecente != null) {
+            YearMonth.from(dataMaisRecente)
+        } else {
+            YearMonth.now()
+        }
+    }
+
+    private fun montarPeriodosDisponiveis(
+        transacoes: List<Transacao>,
+    ): List<ItemPeriodoRelatorio> {
+        val mesesDisponiveis = transacoes
+            .map { YearMonth.from(it.data) }
+            .distinct()
+            .sortedDescending()
+
+        val mesesBase = if (mesesDisponiveis.isEmpty()) {
+            listOf(YearMonth.now())
+        } else {
+            mesesDisponiveis
+        }
+
+        return mesesBase.map { mes ->
+            ItemPeriodoRelatorio(
+                identificador = mes.toString(),
+                rotulo = formatarPeriodoReferencia(mes),
+            )
+        }
+    }
+
+    private fun filtrarTransacoesPorMes(
+        transacoes: List<Transacao>,
+        mesReferencia: YearMonth,
+    ): List<Transacao> {
+        return transacoes.filter { YearMonth.from(it.data) == mesReferencia }
+    }
+
+    private fun montarComparativoMensal(
+        transacoes: List<Transacao>,
+        mesReferencia: YearMonth,
+    ): List<ItemComparativoMensalRelatorio> {
+        val transacoesPorMes = transacoes.groupBy { YearMonth.from(it.data) }
+
+        return (3 downTo 0).map { deslocamento ->
+            val mes = mesReferencia.minusMonths(deslocamento.toLong())
+            val transacoesMes = transacoesPorMes[mes].orEmpty()
+
+            ItemComparativoMensalRelatorio(
+                rotuloMes = formatarRotuloMes(mes, localeBrasil),
+                totalReceitas = somarPorTipo(transacoesMes, TipoTransacao.RECEITA),
+                totalDespesas = somarPorTipo(transacoesMes, TipoTransacao.DESPESA),
+                emDestaque = mes == mesReferencia,
+            )
+        }
+    }
+
+    private fun formatarPeriodoReferencia(mesReferencia: YearMonth): String {
+        val formatter = DateTimeFormatter.ofPattern("MMMM yyyy", localeBrasil)
+        val textoFormatado = mesReferencia.atDay(1).format(formatter)
+        return textoFormatado.replaceFirstChar { letra ->
+            if (letra.isLowerCase()) {
+                letra.titlecase(localeBrasil)
+            } else {
+                letra.toString()
+            }
+        }
+    }
+
+    private fun formatarRotuloMes(
+        mesReferencia: YearMonth,
+        locale: Locale,
+    ): String {
+        val rotulo = mesReferencia.month
+            .getDisplayName(TextStyle.SHORT, locale)
+            .replace(".", "")
+
+        return rotulo.replaceFirstChar { letra ->
+            if (letra.isLowerCase()) {
+                letra.titlecase(locale)
+            } else {
+                letra.toString()
+            }
+        }
     }
 }
 

@@ -1,5 +1,7 @@
 package com.openmoney.app.ui.principal
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.MaterialTheme
@@ -15,9 +17,11 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.openmoney.app.domain.model.TipoTransacao
 import com.openmoney.app.domain.model.Usuario
@@ -287,6 +291,8 @@ fun AreaAutenticadaOpenMoney(
         else -> null
     }
 
+    val exibirMensagemSucesso = configuracaoMensagemSucesso != null
+
     val exibirBarraNavegacao = when (destinoAreaLogada) {
         DestinoAreaLogada.DASHBOARD -> true
         DestinoAreaLogada.CONTAS -> estadoConta.destinoAtual == DestinoConta.LISTA_CONTAS
@@ -294,7 +300,7 @@ fun AreaAutenticadaOpenMoney(
         DestinoAreaLogada.METAS -> estadoMeta.destinoAtual == DestinoMeta.LISTA_METAS
         DestinoAreaLogada.RELATORIOS -> true
         DestinoAreaLogada.PERFIL -> true
-    } && configuracaoMensagemSucesso == null
+    }
     val exibirMenuLateral = when (destinoAreaLogada) {
         DestinoAreaLogada.DASHBOARD -> false
         DestinoAreaLogada.CONTAS -> estadoConta.destinoAtual == DestinoConta.LISTA_CONTAS
@@ -302,7 +308,7 @@ fun AreaAutenticadaOpenMoney(
         DestinoAreaLogada.METAS -> estadoMeta.destinoAtual == DestinoMeta.LISTA_METAS
         DestinoAreaLogada.RELATORIOS -> true
         DestinoAreaLogada.PERFIL -> true
-    } && configuracaoMensagemSucesso == null
+    }
 
     val abrirMenuLateral = {
         if (exibirMenuLateral) {
@@ -322,7 +328,7 @@ fun AreaAutenticadaOpenMoney(
     ModalNavigationDrawer(
         modifier = modifier.clipToBounds(),
         drawerState = drawerState,
-        gesturesEnabled = exibirMenuLateral,
+        gesturesEnabled = exibirMenuLateral && !exibirMensagemSucesso,
         scrimColor = Color.Black.copy(alpha = 0.42f),
         drawerContent = {
             MenuLateralOpenMoney(
@@ -336,232 +342,243 @@ fun AreaAutenticadaOpenMoney(
             )
         },
     ) {
-        Scaffold(
-            containerColor = MaterialTheme.colorScheme.background,
-            bottomBar = {
-                if (exibirBarraNavegacao) {
-                    BarraNavegacaoPrincipal(
-                        destinoSelecionado = destinoAreaLogada,
-                        aoSelecionarDestino = navegarParaDestinoPrincipal,
-                    )
+        Box(modifier = Modifier.fillMaxSize()) {
+            Scaffold(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .then(
+                        if (exibirMensagemSucesso) {
+                            Modifier.blur(16.dp)
+                        } else {
+                            Modifier
+                        },
+                    ),
+                containerColor = MaterialTheme.colorScheme.background,
+                bottomBar = {
+                    if (exibirBarraNavegacao) {
+                        BarraNavegacaoPrincipal(
+                            destinoSelecionado = destinoAreaLogada,
+                            aoSelecionarDestino = navegarParaDestinoPrincipal,
+                        )
+                    }
+                },
+            ) { innerPadding ->
+                val modifierConteudo = Modifier.padding(innerPadding)
+
+                when (destinoAreaLogada) {
+                    DestinoAreaLogada.DASHBOARD -> {
+                        TelaDashboard(
+                            usuario = usuario,
+                            estadoPainel = estadoPainel,
+                            aoClicarSair = aoClicarSair,
+                            modifier = modifierConteudo,
+                        )
+                    }
+
+                    DestinoAreaLogada.CONTAS -> {
+                        when (estadoConta.destinoAtual) {
+                            DestinoConta.LISTA_CONTAS -> {
+                                TelaMinhasContas(
+                                    usuario = usuario,
+                                    contas = estadoConta.contas,
+                                    carregando = estadoConta.carregando,
+                                    mensagemSucesso = estadoConta.mensagemSucesso,
+                                    aoClicarMenu = abrirMenuLateral,
+                                    aoClicarNovaConta = contaViewModel::irParaNovaConta,
+                                    modifier = modifierConteudo,
+                                )
+                            }
+
+                            DestinoConta.NOVA_CONTA -> {
+                                TelaNovaConta(
+                                    nomeConta = estadoConta.nomeConta,
+                                    tipoContaSelecionado = estadoConta.tipoContaSelecionado,
+                                    corSelecionada = estadoConta.corSelecionada,
+                                    saldoInicial = estadoConta.saldoInicial,
+                                    erroNomeConta = estadoConta.erroNomeConta,
+                                    erroTipoConta = estadoConta.erroTipoConta,
+                                    erroSaldoInicial = estadoConta.erroSaldoInicial,
+                                    mensagemErro = estadoConta.mensagemErro,
+                                    aoAlterarNomeConta = contaViewModel::atualizarNomeConta,
+                                    aoSelecionarTipoConta = contaViewModel::selecionarTipoConta,
+                                    aoSelecionarCor = contaViewModel::selecionarCorConta,
+                                    aoAlterarSaldoInicial = contaViewModel::atualizarSaldoInicial,
+                                    aoClicarVoltar = contaViewModel::irParaListaContas,
+                                    aoClicarCancelar = contaViewModel::irParaListaContas,
+                                    aoClicarSalvar = contaViewModel::cadastrarConta,
+                                    modifier = modifierConteudo,
+                                )
+                            }
+                        }
+                    }
+
+                    DestinoAreaLogada.LANCAR -> {
+                        when (destinoLancamento) {
+                            DestinoLancamento.NOVA_TRANSACAO -> {
+                                TelaNovaTransacao(
+                                    tipoSelecionado = estadoTransacao.tipoSelecionado,
+                                    valor = estadoTransacao.valor,
+                                    descricao = estadoTransacao.descricao,
+                                    dataLancamento = estadoTransacao.dataLancamento,
+                                    contaSelecionadaId = estadoTransacao.contaSelecionadaId,
+                                    categoriaSelecionadaId = estadoTransacao.categoriaSelecionadaId,
+                                    contasDisponiveis = estadoTransacao.contasDisponiveis,
+                                    categoriasDisponiveis = estadoTransacao.categoriasDisponiveis,
+                                    carregando = estadoTransacao.carregando,
+                                    erroValor = estadoTransacao.erroValor,
+                                    erroDescricao = estadoTransacao.erroDescricao,
+                                    erroCategoria = estadoTransacao.erroCategoria,
+                                    erroConta = estadoTransacao.erroConta,
+                                    erroData = estadoTransacao.erroData,
+                                    mensagemErro = estadoTransacao.mensagemErro,
+                                    mensagemSucesso = estadoTransacao.mensagemSucesso,
+                                    aoSelecionarTipo = transacaoViewModel::selecionarTipo,
+                                    aoAlterarValor = transacaoViewModel::atualizarValor,
+                                    aoAlterarDescricao = transacaoViewModel::atualizarDescricao,
+                                    aoAlterarData = transacaoViewModel::atualizarData,
+                                    aoSelecionarCategoria = transacaoViewModel::selecionarCategoria,
+                                    aoSelecionarConta = transacaoViewModel::selecionarConta,
+                                    aoAbrirNovaCategoria = {
+                                        categoriaViewModel.prepararNovaCategoria(estadoTransacao.tipoSelecionado)
+                                        destinoLancamento = DestinoLancamento.NOVA_CATEGORIA
+                                    },
+                                    aoAbrirTransacoesCadastradas = abrirTransacoesCadastradas,
+                                    aoClicarVoltar = { destinoAreaLogada = DestinoAreaLogada.DASHBOARD },
+                                    aoClicarSalvar = transacaoViewModel::cadastrarTransacao,
+                                    modifier = modifierConteudo,
+                                )
+                            }
+
+                            DestinoLancamento.NOVA_CATEGORIA -> {
+                                TelaNovaCategoria(
+                                    tipoSelecionado = estadoCategoria.tipoSelecionado,
+                                    nomeCategoria = estadoCategoria.nomeCategoria,
+                                    iconeSelecionado = estadoCategoria.iconeSelecionado,
+                                    corSelecionada = estadoCategoria.corSelecionada,
+                                    erroNomeCategoria = estadoCategoria.erroNomeCategoria,
+                                    erroTipoCategoria = estadoCategoria.erroTipoCategoria,
+                                    mensagemErro = estadoCategoria.mensagemErro,
+                                    mensagemSucesso = estadoCategoria.mensagemSucesso,
+                                    aoSelecionarTipo = categoriaViewModel::selecionarTipo,
+                                    aoAlterarNomeCategoria = categoriaViewModel::atualizarNomeCategoria,
+                                    aoSelecionarIcone = categoriaViewModel::selecionarIcone,
+                                    aoSelecionarCor = categoriaViewModel::selecionarCor,
+                                    aoClicarCancelar = {
+                                        transacaoViewModel.recarregarCategorias()
+                                        destinoLancamento = DestinoLancamento.NOVA_TRANSACAO
+                                    },
+                                    aoClicarSalvar = categoriaViewModel::cadastrarCategoria,
+                                    modifier = modifierConteudo,
+                                )
+                            }
+
+                            DestinoLancamento.TRANSACOES_CADASTRADAS -> {
+                                TelaTransacoesCadastradas(
+                                    transacoes = estadoTransacao.transacoesCadastradas,
+                                    carregando = estadoTransacao.carregandoTransacoesCadastradas,
+                                    mensagemErro = estadoTransacao.mensagemErro,
+                                    aoClicarVoltar = {
+                                        transacaoViewModel.limparMensagemErro()
+                                        destinoLancamento = DestinoLancamento.NOVA_TRANSACAO
+                                    },
+                                    aoClicarNovaTransacao = {
+                                        transacaoViewModel.limparMensagemErro()
+                                        destinoLancamento = DestinoLancamento.NOVA_TRANSACAO
+                                    },
+                                    modifier = modifierConteudo,
+                                )
+                            }
+                        }
+                    }
+
+                    DestinoAreaLogada.METAS -> {
+                        when (estadoMeta.destinoAtual) {
+                            DestinoMeta.LISTA_METAS -> {
+                                TelaMetasEconomia(
+                                    metas = estadoMeta.metas,
+                                    carregando = estadoMeta.carregando,
+                                    mensagemSucesso = estadoMeta.mensagemSucesso,
+                                    aoClicarMenu = abrirMenuLateral,
+                                    aoClicarNovaMeta = metaViewModel::irParaCriarMeta,
+                                    modifier = modifierConteudo,
+                                )
+                            }
+
+                            DestinoMeta.CRIAR_META -> {
+                                TelaCriarMeta(
+                                    nomeMeta = estadoMeta.nomeMeta,
+                                    valorMeta = estadoMeta.valorMeta,
+                                    valorAtual = estadoMeta.valorAtual,
+                                    dataLimite = estadoMeta.dataLimite,
+                                    erroNomeMeta = estadoMeta.erroNomeMeta,
+                                    erroValorMeta = estadoMeta.erroValorMeta,
+                                    erroValorAtual = estadoMeta.erroValorAtual,
+                                    erroDataLimite = estadoMeta.erroDataLimite,
+                                    mensagemErro = estadoMeta.mensagemErro,
+                                    aoAlterarNomeMeta = metaViewModel::atualizarNomeMeta,
+                                    aoAlterarValorMeta = metaViewModel::atualizarValorMeta,
+                                    aoAlterarValorAtual = metaViewModel::atualizarValorAtual,
+                                    aoAlterarDataLimite = metaViewModel::atualizarDataLimite,
+                                    aoClicarVoltar = metaViewModel::irParaListaMetas,
+                                    aoClicarCancelar = metaViewModel::irParaListaMetas,
+                                    aoClicarSalvar = metaViewModel::cadastrarMeta,
+                                    modifier = modifierConteudo,
+                                )
+                            }
+                        }
+                    }
+
+                    DestinoAreaLogada.RELATORIOS -> {
+                        TelaRelatorios(
+                            estado = estadoRelatorio,
+                            aoClicarMenu = abrirMenuLateral,
+                            aoSelecionarPeriodo = relatorioViewModel::selecionarPeriodo,
+                            modifier = modifierConteudo,
+                        )
+                    }
+
+                    DestinoAreaLogada.PERFIL -> {
+                        TelaGerenciarPerfil(
+                            nomeCompleto = estadoPerfil.nomeCompleto,
+                            email = estadoPerfil.email,
+                            senhaAtual = estadoPerfil.senhaAtual,
+                            novaSenha = estadoPerfil.novaSenha,
+                            confirmarNovaSenha = estadoPerfil.confirmarNovaSenha,
+                            senhaAtualVisivel = estadoPerfil.senhaAtualVisivel,
+                            novaSenhaVisivel = estadoPerfil.novaSenhaVisivel,
+                            confirmarNovaSenhaVisivel = estadoPerfil.confirmarNovaSenhaVisivel,
+                            erroNomeCompleto = estadoPerfil.erroNomeCompleto,
+                            erroEmail = estadoPerfil.erroEmail,
+                            erroSenhaAtual = estadoPerfil.erroSenhaAtual,
+                            erroNovaSenha = estadoPerfil.erroNovaSenha,
+                            erroConfirmarNovaSenha = estadoPerfil.erroConfirmarNovaSenha,
+                            mensagemErro = estadoPerfil.mensagemErro,
+                            mensagemSucesso = estadoPerfil.mensagemSucesso,
+                            aoAlterarNomeCompleto = perfilViewModel::atualizarNomeCompleto,
+                            aoAlterarEmail = perfilViewModel::atualizarEmail,
+                            aoAlterarSenhaAtual = perfilViewModel::atualizarSenhaAtual,
+                            aoAlterarNovaSenha = perfilViewModel::atualizarNovaSenha,
+                            aoAlterarConfirmarNovaSenha = perfilViewModel::atualizarConfirmarNovaSenha,
+                            aoAlternarVisibilidadeSenhaAtual = perfilViewModel::alternarVisibilidadeSenhaAtual,
+                            aoAlternarVisibilidadeNovaSenha = perfilViewModel::alternarVisibilidadeNovaSenha,
+                            aoAlternarVisibilidadeConfirmarNovaSenha = perfilViewModel::alternarVisibilidadeConfirmarNovaSenha,
+                            aoClicarMenu = abrirMenuLateral,
+                            aoClicarSalvar = {
+                                perfilViewModel.salvarAlteracoes(aoAtualizarUsuarioAutenticado)
+                            },
+                            modifier = modifierConteudo,
+                        )
+                    }
                 }
-            },
-        ) { innerPadding ->
-            val modifierConteudo = Modifier.padding(innerPadding)
+            }
 
             if (configuracaoMensagemSucesso != null) {
                 TelaMensagemSucesso(
                     mensagem = configuracaoMensagemSucesso.mensagem,
                     textoBotao = configuracaoMensagemSucesso.textoBotao,
                     aoClicarBotao = configuracaoMensagemSucesso.aoConfirmar,
-                    modifier = modifierConteudo,
+                    modifier = Modifier.fillMaxSize(),
                 )
-                return@Scaffold
-            }
-
-            when (destinoAreaLogada) {
-                DestinoAreaLogada.DASHBOARD -> {
-                    TelaDashboard(
-                        usuario = usuario,
-                        estadoPainel = estadoPainel,
-                        aoClicarSair = aoClicarSair,
-                        modifier = modifierConteudo,
-                    )
-                }
-
-                DestinoAreaLogada.CONTAS -> {
-                    when (estadoConta.destinoAtual) {
-                        DestinoConta.LISTA_CONTAS -> {
-                            TelaMinhasContas(
-                                usuario = usuario,
-                                contas = estadoConta.contas,
-                                carregando = estadoConta.carregando,
-                                mensagemSucesso = estadoConta.mensagemSucesso,
-                                aoClicarMenu = abrirMenuLateral,
-                                aoClicarNovaConta = contaViewModel::irParaNovaConta,
-                                modifier = modifierConteudo,
-                            )
-                        }
-
-                        DestinoConta.NOVA_CONTA -> {
-                            TelaNovaConta(
-                                nomeConta = estadoConta.nomeConta,
-                                tipoContaSelecionado = estadoConta.tipoContaSelecionado,
-                                corSelecionada = estadoConta.corSelecionada,
-                                saldoInicial = estadoConta.saldoInicial,
-                                erroNomeConta = estadoConta.erroNomeConta,
-                                erroTipoConta = estadoConta.erroTipoConta,
-                                erroSaldoInicial = estadoConta.erroSaldoInicial,
-                                mensagemErro = estadoConta.mensagemErro,
-                                aoAlterarNomeConta = contaViewModel::atualizarNomeConta,
-                                aoSelecionarTipoConta = contaViewModel::selecionarTipoConta,
-                                aoSelecionarCor = contaViewModel::selecionarCorConta,
-                                aoAlterarSaldoInicial = contaViewModel::atualizarSaldoInicial,
-                                aoClicarVoltar = contaViewModel::irParaListaContas,
-                                aoClicarCancelar = contaViewModel::irParaListaContas,
-                                aoClicarSalvar = contaViewModel::cadastrarConta,
-                                modifier = modifierConteudo,
-                            )
-                        }
-                    }
-                }
-
-                DestinoAreaLogada.LANCAR -> {
-                    when (destinoLancamento) {
-                        DestinoLancamento.NOVA_TRANSACAO -> {
-                            TelaNovaTransacao(
-                                tipoSelecionado = estadoTransacao.tipoSelecionado,
-                                valor = estadoTransacao.valor,
-                                descricao = estadoTransacao.descricao,
-                                dataLancamento = estadoTransacao.dataLancamento,
-                                contaSelecionadaId = estadoTransacao.contaSelecionadaId,
-                                categoriaSelecionadaId = estadoTransacao.categoriaSelecionadaId,
-                                contasDisponiveis = estadoTransacao.contasDisponiveis,
-                                categoriasDisponiveis = estadoTransacao.categoriasDisponiveis,
-                                carregando = estadoTransacao.carregando,
-                                erroValor = estadoTransacao.erroValor,
-                                erroDescricao = estadoTransacao.erroDescricao,
-                                erroCategoria = estadoTransacao.erroCategoria,
-                                erroConta = estadoTransacao.erroConta,
-                                erroData = estadoTransacao.erroData,
-                                mensagemErro = estadoTransacao.mensagemErro,
-                                mensagemSucesso = estadoTransacao.mensagemSucesso,
-                                aoSelecionarTipo = transacaoViewModel::selecionarTipo,
-                                aoAlterarValor = transacaoViewModel::atualizarValor,
-                                aoAlterarDescricao = transacaoViewModel::atualizarDescricao,
-                                aoAlterarData = transacaoViewModel::atualizarData,
-                                aoSelecionarCategoria = transacaoViewModel::selecionarCategoria,
-                                aoSelecionarConta = transacaoViewModel::selecionarConta,
-                                aoAbrirNovaCategoria = {
-                                    categoriaViewModel.prepararNovaCategoria(estadoTransacao.tipoSelecionado)
-                                    destinoLancamento = DestinoLancamento.NOVA_CATEGORIA
-                                },
-                                aoAbrirTransacoesCadastradas = abrirTransacoesCadastradas,
-                                aoClicarVoltar = { destinoAreaLogada = DestinoAreaLogada.DASHBOARD },
-                                aoClicarSalvar = transacaoViewModel::cadastrarTransacao,
-                                modifier = modifierConteudo,
-                            )
-                        }
-
-                        DestinoLancamento.NOVA_CATEGORIA -> {
-                            TelaNovaCategoria(
-                                tipoSelecionado = estadoCategoria.tipoSelecionado,
-                                nomeCategoria = estadoCategoria.nomeCategoria,
-                                iconeSelecionado = estadoCategoria.iconeSelecionado,
-                                corSelecionada = estadoCategoria.corSelecionada,
-                                erroNomeCategoria = estadoCategoria.erroNomeCategoria,
-                                erroTipoCategoria = estadoCategoria.erroTipoCategoria,
-                                mensagemErro = estadoCategoria.mensagemErro,
-                                mensagemSucesso = estadoCategoria.mensagemSucesso,
-                                aoSelecionarTipo = categoriaViewModel::selecionarTipo,
-                                aoAlterarNomeCategoria = categoriaViewModel::atualizarNomeCategoria,
-                                aoSelecionarIcone = categoriaViewModel::selecionarIcone,
-                                aoSelecionarCor = categoriaViewModel::selecionarCor,
-                                aoClicarCancelar = {
-                                    transacaoViewModel.recarregarCategorias()
-                                    destinoLancamento = DestinoLancamento.NOVA_TRANSACAO
-                                },
-                                aoClicarSalvar = categoriaViewModel::cadastrarCategoria,
-                                modifier = modifierConteudo,
-                            )
-                        }
-
-                        DestinoLancamento.TRANSACOES_CADASTRADAS -> {
-                            TelaTransacoesCadastradas(
-                                transacoes = estadoTransacao.transacoesCadastradas,
-                                carregando = estadoTransacao.carregandoTransacoesCadastradas,
-                                mensagemErro = estadoTransacao.mensagemErro,
-                                aoClicarVoltar = {
-                                    transacaoViewModel.limparMensagemErro()
-                                    destinoLancamento = DestinoLancamento.NOVA_TRANSACAO
-                                },
-                                aoClicarNovaTransacao = {
-                                    transacaoViewModel.limparMensagemErro()
-                                    destinoLancamento = DestinoLancamento.NOVA_TRANSACAO
-                                },
-                                modifier = modifierConteudo,
-                            )
-                        }
-                    }
-                }
-
-                DestinoAreaLogada.METAS -> {
-                    when (estadoMeta.destinoAtual) {
-                        DestinoMeta.LISTA_METAS -> {
-                            TelaMetasEconomia(
-                                metas = estadoMeta.metas,
-                                carregando = estadoMeta.carregando,
-                                mensagemSucesso = estadoMeta.mensagemSucesso,
-                                aoClicarMenu = abrirMenuLateral,
-                                aoClicarNovaMeta = metaViewModel::irParaCriarMeta,
-                                modifier = modifierConteudo,
-                            )
-                        }
-
-                        DestinoMeta.CRIAR_META -> {
-                            TelaCriarMeta(
-                                nomeMeta = estadoMeta.nomeMeta,
-                                valorMeta = estadoMeta.valorMeta,
-                                valorAtual = estadoMeta.valorAtual,
-                                dataLimite = estadoMeta.dataLimite,
-                                erroNomeMeta = estadoMeta.erroNomeMeta,
-                                erroValorMeta = estadoMeta.erroValorMeta,
-                                erroValorAtual = estadoMeta.erroValorAtual,
-                                erroDataLimite = estadoMeta.erroDataLimite,
-                                mensagemErro = estadoMeta.mensagemErro,
-                                aoAlterarNomeMeta = metaViewModel::atualizarNomeMeta,
-                                aoAlterarValorMeta = metaViewModel::atualizarValorMeta,
-                                aoAlterarValorAtual = metaViewModel::atualizarValorAtual,
-                                aoAlterarDataLimite = metaViewModel::atualizarDataLimite,
-                                aoClicarVoltar = metaViewModel::irParaListaMetas,
-                                aoClicarCancelar = metaViewModel::irParaListaMetas,
-                                aoClicarSalvar = metaViewModel::cadastrarMeta,
-                                modifier = modifierConteudo,
-                            )
-                        }
-                    }
-                }
-
-                DestinoAreaLogada.RELATORIOS -> {
-                    TelaRelatorios(
-                        estado = estadoRelatorio,
-                        aoClicarMenu = abrirMenuLateral,
-                        modifier = modifierConteudo,
-                    )
-                }
-
-                DestinoAreaLogada.PERFIL -> {
-                    TelaGerenciarPerfil(
-                        nomeCompleto = estadoPerfil.nomeCompleto,
-                        email = estadoPerfil.email,
-                        senhaAtual = estadoPerfil.senhaAtual,
-                        novaSenha = estadoPerfil.novaSenha,
-                        confirmarNovaSenha = estadoPerfil.confirmarNovaSenha,
-                        senhaAtualVisivel = estadoPerfil.senhaAtualVisivel,
-                        novaSenhaVisivel = estadoPerfil.novaSenhaVisivel,
-                        confirmarNovaSenhaVisivel = estadoPerfil.confirmarNovaSenhaVisivel,
-                        erroNomeCompleto = estadoPerfil.erroNomeCompleto,
-                        erroEmail = estadoPerfil.erroEmail,
-                        erroSenhaAtual = estadoPerfil.erroSenhaAtual,
-                        erroNovaSenha = estadoPerfil.erroNovaSenha,
-                        erroConfirmarNovaSenha = estadoPerfil.erroConfirmarNovaSenha,
-                        mensagemErro = estadoPerfil.mensagemErro,
-                        mensagemSucesso = estadoPerfil.mensagemSucesso,
-                        aoAlterarNomeCompleto = perfilViewModel::atualizarNomeCompleto,
-                        aoAlterarEmail = perfilViewModel::atualizarEmail,
-                        aoAlterarSenhaAtual = perfilViewModel::atualizarSenhaAtual,
-                        aoAlterarNovaSenha = perfilViewModel::atualizarNovaSenha,
-                        aoAlterarConfirmarNovaSenha = perfilViewModel::atualizarConfirmarNovaSenha,
-                        aoAlternarVisibilidadeSenhaAtual = perfilViewModel::alternarVisibilidadeSenhaAtual,
-                        aoAlternarVisibilidadeNovaSenha = perfilViewModel::alternarVisibilidadeNovaSenha,
-                        aoAlternarVisibilidadeConfirmarNovaSenha = perfilViewModel::alternarVisibilidadeConfirmarNovaSenha,
-                        aoClicarMenu = abrirMenuLateral,
-                        aoClicarSalvar = {
-                            perfilViewModel.salvarAlteracoes(aoAtualizarUsuarioAutenticado)
-                        },
-                        modifier = modifierConteudo,
-                    )
-                }
             }
         }
     }
